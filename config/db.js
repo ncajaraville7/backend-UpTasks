@@ -11,8 +11,7 @@ const connectDB = async () => {
     console.log(`MONGODB conectado en: ${url}`);
   } catch (error) {
     console.log(error);
-    //forzamos a finalizar los procesos, detenemos el servidor
-    process.exit(1);
+    process.exit(1); //forzamos a finalizar los procesos, detenemos el servidor
   }
 };
 
