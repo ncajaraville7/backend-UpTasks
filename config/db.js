@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 //mongoose será nuestro conector para mongodb , tiene las funciones suficiente para hacer todo lo que necesitas en mongo.
 
+/**
+ * ConnectDB() es una función asíncrona que usa mongoose para conectarse a la base de datos y, si
+ * falla, registrará el error y saldrá del proceso.
+ */
 const connectDB = async () => {
   try {
     const connection = await mongoose.connect(process.env.MONGO_URI, {

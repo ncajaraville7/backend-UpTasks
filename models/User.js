@@ -36,6 +36,9 @@ const userSchema = mongoose.Schema(
 
 //HASHEAMOS LA PASSWORD
 //USAMOS FUNCTION EN VES DE ARROW FUNCTION POR EL THIS
+/* Un middleware que se ejecuta antes de que el usuario se guarde en la base de datos. Comprueba si se
+ha modificado la contraseña, si no se ha modificado continúa con el siguiente middleware, si se ha
+modificado genera un salt y hashea la contraseña. */
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     //COMPROBAMOS QUE LA CONTRASEÑA NO HAYA SIDO MODIFICADA
