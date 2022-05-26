@@ -1,4 +1,5 @@
 import Project from '../models/Project.js';
+import Task from '../models/Task.js';
 
 /**
  * Obtiene todos los proyectos de la base de datos donde el creador es igual al usuario.*/
@@ -12,7 +13,6 @@ const getProjects = async (req, res) => {
 const newProjects = async (req, res) => {
   const project = new Project(req.body);
   project.projectCreator = req.user._id;
-
   try {
     const projectSave = await project.save();
     res.json(projectSave);
@@ -21,21 +21,35 @@ const newProjects = async (req, res) => {
   }
 };
 
+/**
+ * Obtiene un proyecto por id, si no se encuentra el proyecto, devuelve un error 404, si se encuentra
+ * el proyecto, comprueba si el creador del proyecto es el mismo que el id del usuario, si no lo es,
+ * devuelve un error 401 , si lo es, devuelve el proyecto. */
 const getProject = async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id);
+
   if (!project) {
-    const error = new Error('Proyecto no encontrado');
+    const error = new Error({ msg: 'Proyecto no encontrado' });
     return res.status(404).json({ msg: error.message });
   }
 
   if (project.projectCreator.toString() !== req.user._id.toString()) {
-    const error = new Error('Accion no valida');
+    const error = new Error({ msg: 'Accion no valida' });
     return res.status(401).json({ msg: error.message });
   }
-  res.json(project);
+
+  const task = await Task.find().where('project').equals(project._id);
+  res.json({
+    project,
+    task,
+  });
 };
 
+/**
+ * Toma la identificación del proyecto que se va a editar, encuentra el proyecto en la base de datos,
+ * verifica si el usuario es el creador del proyecto y luego actualiza el proyecto con los nuevos
+ * datos. */
 const editProject = async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id);
@@ -62,6 +76,8 @@ const editProject = async (req, res) => {
   }
 };
 
+/**
+ * Elimina un proyecto de la base de datos si el usuario es el creador del proyecto. */
 const deleteProject = async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id);
@@ -87,8 +103,6 @@ const addCollaborator = async (req, res) => {};
 
 const deleteCollaborator = async (req, res) => {};
 
-const getTasks = async (req, res) => {};
-
 export {
   getProjects,
   newProjects,
@@ -97,5 +111,4 @@ export {
   deleteProject,
   addCollaborator,
   deleteCollaborator,
-  getTasks,
 };
