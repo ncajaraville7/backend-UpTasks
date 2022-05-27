@@ -3,6 +3,8 @@
 // importramos express, para usar import tenemos que poner en el package.json "type: modules"
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
+
 import connectDB from './config/db.js';
 import userRoutes from './routes/userRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
@@ -18,6 +20,25 @@ dotenv.config();
 
 /* Conexión a la base de datos. */
 connectDB();
+
+//Configuracion de cors
+const whiteList = ['http://localhost:3000']; //DOMINIOS PERMITIDOS PARA CONECTARSE A LA DB
+
+/* Una función que comprueba si el origen está en la lista blanca. Si es así, permite que la solicitud
+se realice. Si no es así, arroja un error. */
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whiteList.includes(origin)) {
+      //puede consultar la API
+      callback(null, true);
+    } else {
+      //No puede consultar la API
+      callback(new Error('Error de cors'));
+    }
+  },
+};
+
+app.use(cors(corsOptions));
 
 //ROUTING
 
