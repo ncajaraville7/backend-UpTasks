@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import generateId from '../helpers/generateid.js';
 import generateJWT from '../helpers/generateJWT.js';
+import { emailRegister, forgotPassword } from '../helpers/emails.js';
 
 /**
  * Toma el correo electrónico del cuerpo de la solicitud, verifica si el usuario existe en la base de
@@ -19,8 +20,15 @@ const register = async (req, res) => {
   try {
     const user = new User(req.body); //CREAMOS UN OBJETO CON LA INFORMACION DEL MODELO
     user.token = generateId();
-    const userSave = await user.save(); //ALMACENAMOS EN LA BASE DE DATOS
-    res.json(userSave);
+    await user.save(); //ALMACENAMOS EN LA BASE DE DATOS
+    emailRegister({
+      email: user.email,
+      name: user.name,
+      token: user.token,
+    });
+    res.json({
+      msg: 'Usuario creado correctamente, revisa tu correo para confirmar tu cuenta',
+    });
   } catch (error) {
     console.log(error);
   }
@@ -64,7 +72,7 @@ const confirm = async (req, res) => {
   const userConfirm = await User.findOne({ token });
   if (!userConfirm) {
     const error = new Error('Token no valido');
-    return res.status(400).json({ msg: error.message });
+    return res.status(403).json({ msg: error.message });
   }
 
   try {
@@ -92,7 +100,12 @@ const recoverPassword = async (req, res) => {
   try {
     user.token = generateId();
     await user.save();
-    res.json({ msg: 'Se envió un mensaje con las instrucciones' });
+    forgotPassword({
+      email: user.email,
+      name: user.name,
+      token: user.token,
+    });
+    res.json({ msg: 'Se envió un email con las instrucciones' });
   } catch (error) {
     console.log(error);
   }
@@ -126,7 +139,9 @@ const newPassword = async (req, res) => {
 
     try {
       await user.save();
-      res.json({ msg: 'password modificado correctamente' });
+      res.json({
+        msg: 'Password modificado correctamente, redirigiendo en 1 segundo...',
+      });
     } catch (error) {
       console.log(error);
     }

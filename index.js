@@ -22,13 +22,14 @@ dotenv.config();
 connectDB();
 
 //Configuracion de cors
-const whiteList = ['http://localhost:3000']; //DOMINIOS PERMITIDOS PARA CONECTARSE A LA DB
+const whiteList = [process.env.FRONTEND_URL]; //DOMINIOS PERMITIDOS PARA CONECTARSE A LA DB
 
 /* Una función que comprueba si el origen está en la lista blanca. Si es así, permite que la solicitud
 se realice. Si no es así, arroja un error. */
 const corsOptions = {
   origin: function (origin, callback) {
     if (whiteList.includes(origin)) {
+      //origin identifica que url envia la peticion
       //puede consultar la API
       callback(null, true);
     } else {
