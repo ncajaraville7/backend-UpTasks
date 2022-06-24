@@ -2,8 +2,8 @@ import Project from '../models/Project.js';
 import Task from '../models/Task.js';
 
 const addTask = async (req, res) => {
-  const { project } = req.body;
-  const projectExists = await Project.findById(project);
+  const { id } = req.body;
+  const projectExists = await Project.findById(id);
 
   if (!projectExists) {
     const error = new Error('El proyecto no existe');
@@ -17,6 +17,8 @@ const addTask = async (req, res) => {
 
   try {
     const taskSave = await Task.create(req.body);
+    projectExists.tasks.push(taskSave._id);
+    await projectExists.save();
     res.json(taskSave);
   } catch (error) {
     console.log(error);

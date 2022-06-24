@@ -27,7 +27,7 @@ const newProjects = async (req, res) => {
  * devuelve un error 401 , si lo es, devuelve el proyecto. */
 const getProject = async (req, res) => {
   const { id } = req.params;
-  const project = await Project.findById(id);
+  const project = await Project.findById(id).populate('tasks');
 
   if (!project) {
     const error = new Error({ msg: 'Proyecto no encontrado' });
@@ -39,11 +39,7 @@ const getProject = async (req, res) => {
     return res.status(401).json({ msg: error.message });
   }
 
-  const task = await Task.find().where('project').equals(project._id);
-  res.json({
-    project,
-    task,
-  });
+  res.json(project);
 };
 
 /**

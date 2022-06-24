@@ -23,12 +23,17 @@ const taskSchema = mongoose.Schema(
     },
     priority: {
       type: String,
-      trim: true,
-      enum: ['Baja', 'Media', 'Alta'], //permite solo los valores del arreglo
+      required: true,
+      enum: ['baja', 'media', 'alta'], //permite solo los valores del arreglo
     },
     project: {
       type: mongoose.Schema.Types.ObjectId, //Cuando acceda a los proyectos solo va a traer las tareas de ese proyecto
       ref: 'Project',
+    },
+    completed: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
   },
   {
