@@ -35,7 +35,7 @@ const getTask = async (req, res) => {
     return res.status(404).json({ msg: error.message });
   }
 
-  if (task.project.projectCreator.toString() !== req.user._id.toString()) {
+  if (task.projectCreator.toString() !== req.user._id.toString()) {
     const error = new Error('Accion no valida');
     return res.status(403).json({ msg: error.message });
   }
@@ -52,10 +52,10 @@ const updateTask = async (req, res) => {
     return res.status(404).json({ msg: error.message });
   }
 
-  if (task.project.projectCreator.toString() !== req.user._id.toString()) {
-    const error = new Error('Accion no valida');
-    return res.status(403).json({ msg: error.message });
-  }
+  // if (task.project.projectCreator.toString() !== req.user._id.toString()) {
+  //   const error = new Error('Accion no valida');
+  //   return res.status(403).json({ msg: error.message });
+  // }
 
   task.name = req.body.name || task.name;
   task.description = req.body.description || task.description;
@@ -80,10 +80,10 @@ const deleteTask = async (req, res) => {
     return res.status(404).json({ msg: error.message });
   }
 
-  if (task.project.projectCreator.toString() !== req.user._id.toString()) {
-    const error = new Error('Accion no valida');
-    return res.status(403).json({ msg: error.message });
-  }
+  // if (task.project.projectCreator.toString() !== req.user._id.toString()) {
+  //   const error = new Error('Accion no valida');
+  //   return res.status(403).json({ msg: error.message });
+  // }
 
   try {
     await task.deleteOne();
