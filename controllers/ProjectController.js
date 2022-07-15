@@ -1,10 +1,12 @@
 import Project from '../models/Project.js';
-import Task from '../models/Task.js';
+import User from '../models/User.js';
 
 /**
  * Obtiene todos los proyectos de la base de datos donde el creador es igual al usuario.*/
 const getProjects = async (req, res) => {
-  const projects = await Project.find().where('creator').equals(req.user);
+  const projects = await Project.find({
+    $or: [{ collaborators: { $in: req.user } }, { creator: { $in: req.user } }],
+  }).select('-tasks');
   res.json(projects);
 };
 
@@ -27,14 +29,21 @@ const newProjects = async (req, res) => {
  * devuelve un error 401 , si lo es, devuelve el proyecto. */
 const getProject = async (req, res) => {
   const { id } = req.params;
-  const project = await Project.findById(id).populate('tasks');
+  const project = await Project.findById(id)
+    .populate('tasks')
+    .populate('collaborators', 'name email');
 
   if (!project) {
     const error = new Error({ msg: 'Proyecto no encontrado' });
     return res.status(404).json({ msg: error.message });
   }
 
-  if (project.projectCreator.toString() !== req.user._id.toString()) {
+  if (
+    project.projectCreator.toString() !== req.user._id.toString() &&
+    !project.collaborators.some(
+      (collaborator) => collaborator._id.toString() == req.user._id.toString()
+    )
+  ) {
     const error = new Error({ msg: 'Accion no valida' });
     return res.status(401).json({ msg: error.message });
   }
@@ -95,9 +104,77 @@ const deleteProject = async (req, res) => {
   }
 };
 
-const addCollaborator = async (req, res) => {};
+const addCollaborator = async (req, res) => {
+  const project = await Project.findById(req.params.id);
 
-const deleteCollaborator = async (req, res) => {};
+  if (!project) {
+    const error = new Error('Proyecto no encontrado');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.projectCreator.toString() !== req.user._id.toString()) {
+    const error = new Error('Accion no valida');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  const { email } = req.body;
+
+  const user = await User.findOne({ email }).select(
+    '-confirm -createdAt -password -token -updatedAt -__v'
+  );
+
+  if (!user) {
+    const error = new Error('Usuario no encontrado');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.projectCreator.toString() === user._id.toString()) {
+    const error = new Error('El creador del proyecto no puede ser colaborador');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.collaborators.includes(user._id)) {
+    const error = new Error('El usuario ya pertenece al proyecto');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  project.collaborators.push(user._id);
+  await project.save();
+  res.json({ msg: 'Colaborador agregado correctamente' });
+};
+
+const searchCollaborator = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email }).select(
+    '-confirm -createdAt -password -token -updatedAt -__v'
+  );
+
+  if (!user) {
+    const error = new Error('Usuario no encontrado');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  res.json(user);
+};
+
+const deleteCollaborator = async (req, res) => {
+  const project = await Project.findById(req.params.id);
+
+  if (!project) {
+    const error = new Error('Proyecto no encontrado');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  if (project.projectCreator.toString() !== req.user._id.toString()) {
+    const error = new Error('Accion no valida');
+    return res.status(404).json({ msg: error.message });
+  }
+
+  project.collaborators.pull(req.body.id);
+  await project.save();
+  res.json({ msg: 'Colaborador eliminado correctamente' });
+};
 
 export {
   getProjects,
@@ -107,4 +184,5 @@ export {
   deleteProject,
   addCollaborator,
   deleteCollaborator,
+  searchCollaborator,
 };
